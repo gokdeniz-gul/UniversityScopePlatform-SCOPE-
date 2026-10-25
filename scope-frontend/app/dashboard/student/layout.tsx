@@ -3,14 +3,27 @@
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Home as HomeIcon, Users, Search, FolderOpen, FileText, LogOut, UserCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getToken, getUser, clearAuth, type AuthUser } from "@/lib/auth";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
     const [showProfilePopup, setShowProfilePopup] = useState(false);
+    const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+
+    useEffect(() => {
+        const token = getToken();
+        const user = getUser();
+        if (!token || !user) {
+            router.replace("/login");
+            return;
+        }
+        setAuthUser(user);
+    }, [router]);
 
     const handleLogout = () => {
+        clearAuth();
         router.push("/");
     };
 
@@ -73,6 +86,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                     {/* User Profile Section (Bottom) */}
                     <div className="relative p-6 border-t border-white/20 z-20">
                         <button
+                            type="button"
                             onClick={() => setShowProfilePopup(!showProfilePopup)}
                             className="w-full flex items-center space-x-3 px-5 py-4 rounded-[28px] text-white/80 hover:text-white hover:bg-white/15 transition-all duration-200 text-left cursor-pointer"
                         >
@@ -80,7 +94,9 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                                 <UserCircle className="w-6 h-6 text-white" strokeWidth={2} />
                             </div>
                             <div className="flex-1">
-                                <p className="text-sm font-semibold text-white">Tuana Ener</p>
+                                <p className="text-sm font-semibold text-white">
+                                    {authUser?.name ?? "Student"}
+                                </p>
                                 <p className="text-xs text-white/60">Student</p>
                             </div>
                         </button>
@@ -110,6 +126,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                                     <div className="h-px bg-white/20 my-2 mx-3"></div>
 
                                     <button
+                                        type="button"
                                         onClick={handleLogout}
                                         className="w-full flex items-center space-x-3 px-5 py-4 rounded-[28px] text-red-300 hover:text-red-200 hover:bg-red-500/20 transition-all duration-200 text-left group cursor-pointer"
                                     >

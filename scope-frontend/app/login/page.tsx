@@ -70,10 +70,18 @@ export default function LoginRoleSelect() {
         </Link>
       </div>
 
+      {/* Admin portal link */}
+      <Link
+        href="/login/admin"
+        className="mt-10 text-sm text-white/30 transition-colors hover:text-white/60"
+      >
+        Admin Portal →
+      </Link>
+
       {/* Back to Home */}
       <Link
         href="/"
-        className="mt-14 flex items-center gap-2 text-base font-medium text-white/70 transition-colors hover:text-white"
+        className="mt-6 flex items-center gap-2 text-base font-medium text-white/70 transition-colors hover:text-white"
       >
         <svg
           className="h-5 w-5"

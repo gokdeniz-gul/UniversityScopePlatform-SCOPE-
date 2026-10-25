@@ -3,15 +3,39 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+import { saveAuth } from "@/lib/auth";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
 
 export default function AdvisorLogin() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push("/dashboard/advisor");
+    setError("");
+    setLoading(true);
+    try {
+      const { data } = await axios.post(`${API_BASE}/auth/login`, { email, password });
+      if (data.user.role !== "INSTRUCTOR") {
+        setError("This account is not an advisor account.");
+        return;
+      }
+      saveAuth(data.token, data.user);
+      router.push("/dashboard/advisor");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.error ?? "Login failed. Please try again.");
+      } else {
+        setError("An unexpected error occurred.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -117,13 +141,21 @@ export default function AdvisorLogin() {
             </a>
           </div>
 
+          {/* Error message */}
+          {error && (
+            <p className="rounded-xl bg-red-500/20 border border-red-400/30 px-4 py-3 text-sm text-red-300 text-center">
+              {error}
+            </p>
+          )}
+
           {/* Log In button */}
           <button
             type="submit"
             id="advisor-login-submit"
-            className="w-full rounded-2xl bg-gradient-to-r from-[#3b5998] to-[#4a6eb5] py-5 text-lg font-bold text-white shadow-lg transition-all duration-300 hover:from-[#4a6eb5] hover:to-[#5a7ec5] hover:shadow-xl hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-blue-400/50"
+            disabled={loading}
+            className="w-full rounded-2xl bg-gradient-to-r from-[#3b5998] to-[#4a6eb5] py-5 text-lg font-bold text-white shadow-lg transition-all duration-300 hover:from-[#4a6eb5] hover:to-[#5a7ec5] hover:shadow-xl hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-blue-400/50 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Log In
+            {loading ? "Signing in…" : "Log In"}
           </button>
         </form>
 
